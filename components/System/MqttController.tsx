@@ -108,9 +108,14 @@ export const MqttController: React.FC = () => {
       // which would move 2 lanes at once and often clamp to the edge.
       if (cmd === 'start') {
         const state = useStore.getState();
-        // Start or restart depending on current status
-        if (state.status === 'MENU') state.startGame();
-        else state.restartGame();
+        // Only allow start/restart when not actively playing, to avoid mid-run resets.
+        if (state.status === 'MENU') {
+          state.startGame();
+        } else if (state.status === 'GAME_OVER' || state.status === 'VICTORY') {
+          state.restartGame();
+        } else {
+          // ignore when PLAYING (or any other future in-game state)
+        }
       } else {
         dispatchGameControl(cmd);
       }
