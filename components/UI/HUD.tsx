@@ -49,7 +49,7 @@ export const HUD: React.FC = () => {
                 {/* Image Container - Auto height to fit full image without cropping */}
                 <div className="relative w-full bg-gray-900">
                      <img 
-                      src="cover.png"
+                      src={`${import.meta.env.BASE_URL}cover.png`}
                       alt="游戏封面" 
                       className="w-full h-auto block"
                       loading="eager"
