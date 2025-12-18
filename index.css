@@ -1,0 +1,38 @@
+/* HUD damage feedback */
+@keyframes hudDamageFlash {
+  0% {
+    opacity: 0;
+    transform: scale(1);
+  }
+  18% {
+    opacity: 1;
+    transform: scale(1.01);
+  }
+  45% {
+    opacity: 0.65;
+    transform: scale(1.005);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1);
+  }
+}
+
+@keyframes hudDamagePulse {
+  0% { opacity: 0; }
+  25% { opacity: 0.9; }
+  100% { opacity: 0; }
+}
+
+.hud-damage-vignette {
+  animation: hudDamageFlash 320ms ease-out both;
+  mix-blend-mode: screen;
+  will-change: opacity, transform;
+}
+
+.hud-damage-pulse {
+  animation: hudDamagePulse 420ms ease-out both;
+  mix-blend-mode: screen;
+  will-change: opacity;
+}
+
