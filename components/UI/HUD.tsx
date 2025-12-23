@@ -205,12 +205,7 @@ export const HUD: React.FC = () => {
             关卡 {level} <span className="text-gray-500 text-xs md:text-sm">/ 3</span>
         </div>
 
-        {/* Active Skill Indicator */}
-        {isImmortalityActive && (
-             <div className="absolute top-24 left-1/2 transform -translate-x-1/2 text-yellow-400 font-bold text-xl md:text-2xl animate-pulse flex items-center drop-shadow-[0_0_10px_gold]">
-                 <Shield className="mr-2 fill-yellow-400" /> 无敌中
-             </div>
-        )}
+        {/* Active Skill Indicator removed from here - moved to Player.tsx for follow-effect */}
 
         {/* Collection Status - Just below Top Bar */}
         <div className="absolute top-20 md:top-28 left-1/2 transform -translate-x-1/2 flex space-x-2 md:space-x-4">

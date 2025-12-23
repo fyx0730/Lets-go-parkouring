@@ -11,16 +11,17 @@ import { BlendFunction } from 'postprocessing';
 export const Effects: React.FC = () => {
   return (
     <EffectComposer disableNormalPass multisampling={0}>
-      {/* Tighter bloom to avoid fog: High threshold, moderate radius */}
+      {/* Optimized bloom for low-end hardware: lower intensity and fewer levels */}
       <Bloom 
-        luminanceThreshold={0.75} 
-        mipmapBlur 
-        intensity={1.0} 
-        radius={0.6}
-        levels={8}
+        luminanceThreshold={0.85} 
+        mipmapBlur={false} 
+        intensity={0.6} 
+        radius={0.4}
+        levels={4}
       />
-      <Noise opacity={0.05} blendFunction={BlendFunction.OVERLAY} />
-      <Vignette eskil={false} offset={0.1} darkness={0.5} />
+      {/* Noise and Vignette are disabled for performance on Raspberry Pi */}
+      {/* <Noise opacity={0.05} blendFunction={BlendFunction.OVERLAY} /> */}
+      {/* <Vignette eskil={false} offset={0.1} darkness={0.5} /> */}
     </EffectComposer>
   );
 };

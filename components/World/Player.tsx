@@ -7,6 +7,8 @@
 import React, { useRef, useEffect, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
+import { Html } from '@react-three/drei';
+import { Shield } from 'lucide-react';
 import { useStore } from '../../store';
 import { LANE_WIDTH, GameStatus } from '../../types';
 import { audio } from '../System/Audio';
@@ -21,11 +23,11 @@ const JETPACK_GEO = new THREE.BoxGeometry(0.3, 0.4, 0.15);
 const GLOW_STRIP_GEO = new THREE.PlaneGeometry(0.05, 0.2);
 const HEAD_GEO = new THREE.BoxGeometry(0.25, 0.3, 0.3);
 const ARM_GEO = new THREE.BoxGeometry(0.12, 0.6, 0.12);
-const JOINT_SPHERE_GEO = new THREE.SphereGeometry(0.07);
+const JOINT_SPHERE_GEO = new THREE.SphereGeometry(0.07, 8, 8);
 const HIPS_GEO = new THREE.CylinderGeometry(0.16, 0.16, 0.2);
 const LEG_GEO = new THREE.BoxGeometry(0.15, 0.7, 0.15);
-const SHADOW_GEO = new THREE.CircleGeometry(0.5, 32);
-const SHIELD_RING_GEO = new THREE.TorusGeometry(0.75, 0.06, 16, 64);
+const SHADOW_GEO = new THREE.CircleGeometry(0.5, 12);
+const SHIELD_RING_GEO = new THREE.TorusGeometry(0.75, 0.06, 8, 32);
 
 export const Player: React.FC = () => {
   const groupRef = useRef<THREE.Group>(null);
@@ -315,6 +317,20 @@ export const Player: React.FC = () => {
 
   return (
     <group ref={groupRef} position={[0, 0, 0]}>
+      {/* Follow-text for Immortality */}
+      {isImmortalityActive && (
+        <Html
+          position={[0, 2.5, 0]}
+          center
+          distanceFactor={10}
+          className="pointer-events-none select-none"
+        >
+          <div className="flex items-center text-yellow-400 font-black text-xl md:text-2xl whitespace-nowrap animate-pulse drop-shadow-[0_0_8px_gold] font-cyber">
+            <Shield className="mr-1 w-5 h-5 md:w-6 md:h-6 fill-yellow-400" /> 无敌中
+          </div>
+        </Html>
+      )}
+
       {/* Immortality Shield (transparent ring that fades out) */}
       <group ref={shieldRef} position={[0, 1.0, 0]}>
         <mesh geometry={SHIELD_RING_GEO} rotation={[Math.PI / 2, 0, 0]} material={shieldMaterial} />

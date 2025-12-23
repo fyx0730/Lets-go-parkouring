@@ -41,19 +41,19 @@ const HEART_GEO = new THREE.ExtrudeGeometry(HEART_SHAPE, {
     bevelThickness: 0.03,
     bevelSize: 0.03,
     bevelSegments: 2,
-    curveSegments: 10,
+    curveSegments: 4,
 });
 HEART_GEO.center();
-const HEART_RING_GEO = new THREE.TorusGeometry(0.5, 0.06, 16, 48);
+const HEART_RING_GEO = new THREE.TorusGeometry(0.5, 0.06, 12, 32);
 
 // Alien Geometries
-const ALIEN_BODY_GEO = new THREE.CylinderGeometry(0.6, 0.3, 0.3, 8);
-const ALIEN_DOME_GEO = new THREE.SphereGeometry(0.4, 16, 16, 0, Math.PI * 2, 0, Math.PI/2);
-const ALIEN_EYE_GEO = new THREE.SphereGeometry(0.1);
+const ALIEN_BODY_GEO = new THREE.CylinderGeometry(0.6, 0.3, 0.3, 6);
+const ALIEN_DOME_GEO = new THREE.SphereGeometry(0.4, 12, 8, 0, Math.PI * 2, 0, Math.PI/2);
+const ALIEN_EYE_GEO = new THREE.SphereGeometry(0.1, 8, 8);
 
 // Missile Geometries
-const MISSILE_CORE_GEO = new THREE.CylinderGeometry(0.08, 0.08, 3.0, 8);
-const MISSILE_RING_GEO = new THREE.TorusGeometry(0.15, 0.02, 16, 32);
+const MISSILE_CORE_GEO = new THREE.CylinderGeometry(0.08, 0.08, 3.0, 6);
+const MISSILE_RING_GEO = new THREE.TorusGeometry(0.15, 0.02, 12, 24);
 
 // Shadow Geometries
 const SHADOW_LETTER_GEO = new THREE.PlaneGeometry(2, 0.6);
@@ -70,7 +70,7 @@ const LETTER_GLOW_GEO = new THREE.TorusGeometry(0.75, 0.05, 12, 48);
 
 // (Shop removed)
 
-const PARTICLE_COUNT = 600;
+const PARTICLE_COUNT = 300;
 const BASE_LETTER_INTERVAL = 150; 
 
 const getLetterInterval = (level: number) => {
@@ -170,11 +170,11 @@ function getExtrudedGeometry(font: Font, text: string, opts: { size: number; dep
         font,
         size: opts.size,
         depth: opts.depth,
-        curveSegments: 6,
+        curveSegments: 3,
         bevelEnabled: opts.bevelEnabled,
-        bevelThickness: opts.bevelEnabled ? Math.max(0.01, opts.depth * 0.25) : 0,
-        bevelSize: opts.bevelEnabled ? Math.max(0.01, opts.size * 0.06) : 0,
-        bevelSegments: opts.bevelEnabled ? 2 : 0,
+        bevelThickness: opts.bevelEnabled ? Math.max(0.01, opts.depth * 0.15) : 0,
+        bevelSize: opts.bevelEnabled ? Math.max(0.01, opts.size * 0.04) : 0,
+        bevelSegments: opts.bevelEnabled ? 1 : 0,
     });
 
     geometry.computeBoundingBox();
@@ -257,6 +257,9 @@ const ParticleSystem: React.FC = () => {
         color: new THREE.Color()
     })), []);
 
+    // Track which dead particles have already been scaled to 0 to avoid redundant matrix updates
+    const deadHandled = useRef<boolean[]>(new Array(PARTICLE_COUNT).fill(false));
+
     useEffect(() => {
         const handleExplosion = (e: CustomEvent) => {
             const { position, color } = e.detail;
@@ -283,6 +286,7 @@ const ParticleSystem: React.FC = () => {
                     p.rotVel.set(Math.random()-0.5, Math.random()-0.5, Math.random()-0.5).multiplyScalar(5);
                     
                     p.color.set(color);
+                    deadHandled.current[i] = false;
                     
                     spawned++;
                     if (spawned >= burstAmount) break;
@@ -297,9 +301,11 @@ const ParticleSystem: React.FC = () => {
     useFrame((state, delta) => {
         if (!mesh.current) return;
         const safeDelta = Math.min(delta, 0.1);
+        let needsUpdate = false;
 
         particles.forEach((p, i) => {
             if (p.life > 0) {
+                needsUpdate = true;
                 p.life -= safeDelta * 1.5;
                 p.pos.addScaledVector(p.vel, safeDelta);
                 p.vel.y -= safeDelta * 5; 
@@ -317,15 +323,19 @@ const ParticleSystem: React.FC = () => {
                 
                 mesh.current!.setMatrixAt(i, dummy.matrix);
                 mesh.current!.setColorAt(i, p.color);
-            } else {
+            } else if (!deadHandled.current[i]) {
+                needsUpdate = true;
                 dummy.scale.set(0,0,0);
                 dummy.updateMatrix();
                 mesh.current!.setMatrixAt(i, dummy.matrix);
+                deadHandled.current[i] = true;
             }
         });
         
-        mesh.current.instanceMatrix.needsUpdate = true;
-        if (mesh.current.instanceColor) mesh.current.instanceColor.needsUpdate = true;
+        if (needsUpdate) {
+            mesh.current.instanceMatrix.needsUpdate = true;
+            if (mesh.current.instanceColor) mesh.current.instanceColor.needsUpdate = true;
+        }
     });
 
     return (
@@ -393,7 +403,7 @@ export const LevelManager: React.FC = () => {
         nextLetterDistance.current = distanceTraveled.current - SPAWN_DISTANCE + getLetterInterval(level);
         // Allow immortality again, but don't let it chain immediately after level-up.
         nextImmortalityDistance.current = Math.max(nextImmortalityDistance.current, distanceTraveled.current + 120);
-
+        
         setRenderTrigger(t => t + 1);
     } else if (status === GameStatus.GAME_OVER || status === GameStatus.VICTORY) {
         setDistance(Math.floor(distanceTraveled.current));
@@ -1135,7 +1145,7 @@ const GameEntity: React.FC<{ data: GameObject }> = React.memo(({ data }) => {
                                         <primitive attach="material" object={extrudedLetterMaterials} />
                                     )}
                                 </mesh>
-                            </group>
+                    </group>
                         ) : (
                             <group>
                                 {/* 3D plaque body (has thickness) */}
