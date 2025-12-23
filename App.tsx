@@ -63,8 +63,7 @@ function Scene() {
             </group>
             <LevelManager />
         </group>
-        {/* Effects disabled for Raspberry Pi 5 full-screen performance */}
-        {/* <Effects /> */}
+        <Effects />
     </>
   );
 }
@@ -76,7 +75,7 @@ function App() {
       <MqttController />
       <Canvas
         shadows={false}
-        dpr={0.8} 
+        dpr={1} 
         gl={{ antialias: false, stencil: false, depth: true, powerPreference: "high-performance" }}
         // Initial camera, matches the controller base
         camera={{ position: [0, 5.5, 8], fov: 60 }}

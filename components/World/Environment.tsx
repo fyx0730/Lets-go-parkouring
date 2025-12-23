@@ -150,9 +150,9 @@ const RetroSun: React.FC = () => {
 
     return (
         <group ref={sunGroupRef} position={[0, 30, -180]}>
-            {/* Further Reduced Geometry for Pi 5: 16 segments instead of 32 */}
+            {/* Reduced Geometry for Mobile: 32 segments instead of 64 */}
             <mesh>
-                <sphereGeometry args={[35, 16, 16]} />
+                <sphereGeometry args={[35, 32, 32]} />
                 <shaderMaterial
                     ref={matRef}
                     uniforms={uniforms}
@@ -235,13 +235,11 @@ export const Environment: React.FC = () => {
   return (
     <>
       <color attach="background" args={['#050011']} />
-      {/* Fog disabled for performance on Raspberry Pi 5 */}
-      {/* <fog attach="fog" args={['#050011', 40, 160]} /> */}
+      <fog attach="fog" args={['#050011', 40, 160]} />
       
-      <ambientLight intensity={0.6} color="#400080" />
+      <ambientLight intensity={0.2} color="#400080" />
       <directionalLight position={[0, 20, -10]} intensity={1.5} color="#00ffff" />
-      {/* Point light disabled for performance */}
-      {/* <pointLight position={[0, 25, -150]} intensity={2} color="#ff00aa" distance={200} decay={2} /> */}
+      <pointLight position={[0, 25, -150]} intensity={2} color="#ff00aa" distance={200} decay={2} />
       
       <StarField />
       <MovingGrid />
