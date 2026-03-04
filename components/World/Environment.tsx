@@ -10,9 +10,8 @@ import * as THREE from 'three';
 import { useStore } from '../../store';
 import { LANE_WIDTH } from '../../types';
 
-const StarField: React.FC = () => {
+const StarField: React.FC<{ count: number }> = ({ count }) => {
   const speed = useStore(state => state.speed);
-  const count = 1000; // Reduced star count for better performance on Pi 5
   const meshRef = useRef<THREE.Points>(null);
   
   const positions = useMemo(() => {
@@ -231,7 +230,7 @@ const MovingGrid: React.FC = () => {
     );
 };
 
-export const Environment: React.FC = () => {
+export const Environment: React.FC<{ starCount?: number }> = ({ starCount = 1000 }) => {
   return (
     <>
       <color attach="background" args={['#050011']} />
@@ -241,7 +240,7 @@ export const Environment: React.FC = () => {
       <directionalLight position={[0, 20, -10]} intensity={1.5} color="#00ffff" />
       <pointLight position={[0, 25, -150]} intensity={2} color="#ff00aa" distance={200} decay={2} />
       
-      <StarField />
+      <StarField count={starCount} />
       <MovingGrid />
       <LaneGuides />
       

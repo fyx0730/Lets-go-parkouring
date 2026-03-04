@@ -4,7 +4,7 @@
 */
 
 
-import React, { Suspense } from 'react';
+import React, { Suspense, useEffect, useMemo, useState } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 import { Environment } from './components/World/Environment';
@@ -14,6 +14,44 @@ import { Effects } from './components/World/Effects';
 import { HUD } from './components/UI/HUD';
 import { useStore } from './store';
 import { MqttController } from './components/System/MqttController';
+
+type QualityLevel = 'low' | 'medium' | 'high';
+type RenderQuality = {
+  level: QualityLevel;
+  dpr: number;
+  bloomEnabled: boolean;
+  starCount: number;
+  particleCount: number;
+};
+
+const getRenderQuality = (width: number, height: number): RenderQuality => {
+  const pixels = width * height;
+  if (pixels >= 1920 * 1080) {
+    return {
+      level: 'low',
+      dpr: 0.72,
+      bloomEnabled: false,
+      starCount: 450,
+      particleCount: 140,
+    };
+  }
+  if (pixels >= 1280 * 720) {
+    return {
+      level: 'medium',
+      dpr: 0.85,
+      bloomEnabled: true,
+      starCount: 700,
+      particleCount: 200,
+    };
+  }
+  return {
+    level: 'high',
+    dpr: 1,
+    bloomEnabled: true,
+    starCount: 1000,
+    particleCount: 300,
+  };
+};
 
 // Dynamic Camera Controller
 const CameraController = () => {
@@ -52,37 +90,58 @@ const CameraController = () => {
   return null;
 };
 
-function Scene() {
+function Scene({ quality }: { quality: RenderQuality }) {
   return (
     <>
-        <Environment />
+        <Environment starCount={quality.starCount} />
         <group>
             {/* Attach a userData to identify player group for LevelManager collision logic */}
             <group userData={{ isPlayer: true }} name="PlayerGroup">
                  <Player />
             </group>
-            <LevelManager />
+            <LevelManager particleCount={quality.particleCount} />
         </group>
-        <Effects />
+        {quality.bloomEnabled && <Effects />}
     </>
   );
 }
 
 function App() {
+  const [viewport, setViewport] = useState(() => ({
+    width: window.innerWidth,
+    height: window.innerHeight,
+  }));
+
+  useEffect(() => {
+    const onResize = () => {
+      setViewport({
+        width: window.innerWidth,
+        height: window.innerHeight,
+      });
+    };
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
+
+  const quality = useMemo(
+    () => getRenderQuality(viewport.width, viewport.height),
+    [viewport.width, viewport.height]
+  );
+
   return (
     <div className="relative w-full h-screen bg-black overflow-hidden select-none">
       <HUD />
       <MqttController />
       <Canvas
         shadows={false}
-        dpr={1} 
+        dpr={quality.dpr}
         gl={{ antialias: false, stencil: false, depth: true, powerPreference: "high-performance" }}
         // Initial camera, matches the controller base
         camera={{ position: [0, 5.5, 8], fov: 60 }}
       >
         <CameraController />
         <Suspense fallback={null}>
-            <Scene />
+            <Scene quality={quality} />
         </Suspense>
       </Canvas>
     </div>

@@ -70,7 +70,7 @@ const LETTER_GLOW_GEO = new THREE.TorusGeometry(0.75, 0.05, 12, 48);
 
 // (Shop removed)
 
-const PARTICLE_COUNT = 300;
+const DEFAULT_PARTICLE_COUNT = 300;
 const BASE_LETTER_INTERVAL = 150; 
 
 const getLetterInterval = (level: number) => {
@@ -244,21 +244,25 @@ function getTextTexture(opts: {
 }
 
 // --- Particle System ---
-const ParticleSystem: React.FC = () => {
+const ParticleSystem: React.FC<{ count: number }> = ({ count }) => {
     const mesh = useRef<THREE.InstancedMesh>(null);
     const dummy = useMemo(() => new THREE.Object3D(), []);
     
-    const particles = useMemo(() => new Array(PARTICLE_COUNT).fill(0).map(() => ({
+    const particles = useMemo(() => new Array(count).fill(0).map(() => ({
         life: 0,
         pos: new THREE.Vector3(),
         vel: new THREE.Vector3(),
         rot: new THREE.Vector3(),
         rotVel: new THREE.Vector3(),
         color: new THREE.Color()
-    })), []);
+    })), [count]);
 
     // Track which dead particles have already been scaled to 0 to avoid redundant matrix updates
-    const deadHandled = useRef<boolean[]>(new Array(PARTICLE_COUNT).fill(false));
+    const deadHandled = useRef<boolean[]>(new Array(count).fill(false));
+
+    useEffect(() => {
+        deadHandled.current = new Array(count).fill(false);
+    }, [count]);
 
     useEffect(() => {
         const handleExplosion = (e: CustomEvent) => {
@@ -266,7 +270,7 @@ const ParticleSystem: React.FC = () => {
             let spawned = 0;
             const burstAmount = 40; 
 
-            for(let i = 0; i < PARTICLE_COUNT; i++) {
+            for(let i = 0; i < count; i++) {
                 const p = particles[i];
                 if (p.life <= 0) {
                     p.life = 1.0 + Math.random() * 0.5; 
@@ -339,7 +343,7 @@ const ParticleSystem: React.FC = () => {
     });
 
     return (
-        <instancedMesh ref={mesh} args={[undefined, undefined, PARTICLE_COUNT]}>
+        <instancedMesh ref={mesh} args={[undefined, undefined, count]}>
             <octahedronGeometry args={[0.5, 0]} />
             <meshBasicMaterial toneMapped={false} transparent opacity={0.9} />
         </instancedMesh>
@@ -352,7 +356,7 @@ const getRandomLane = (laneCount: number) => {
     return Math.floor(Math.random() * (max * 2 + 1)) - max;
 };
 
-export const LevelManager: React.FC = () => {
+export const LevelManager: React.FC<{ particleCount?: number }> = ({ particleCount = DEFAULT_PARTICLE_COUNT }) => {
   const { 
     status, 
     speed, 
@@ -782,7 +786,7 @@ export const LevelManager: React.FC = () => {
 
   return (
     <group>
-      <ParticleSystem />
+      <ParticleSystem count={particleCount} />
       {objectsRef.current.map(obj => {
         if (!obj.active) return null;
         return <GameEntity key={obj.id} data={obj} />;
